@@ -1,157 +1,113 @@
-import { defineType, defineField } from 'sanity'
+
+import {defineType, defineField} from 'sanity'
 
 export default defineType({
   name: 'heroSection',
   title: 'Hero Section',
   type: 'document',
   fields: [
+    /* fetch by slug – one hero per page */
+defineField({
+  name: 'slug',
+  title: 'Section ID (slug)',
+  type: 'slug',
+  options: { source: (doc: any) => doc?.title?.first || '' },
+  validation: R => R.required()
+}),
+
+
+    /* ------  TEXT  ------ */
     defineField({
       name: 'title',
-      title: 'Hero Title',
+      title: 'Heading (3-part)',
       type: 'object',
+      validation: R => R.required(),
       fields: [
-        defineField({
-          name: 'firstLine',
-          title: 'First Line',
-          type: 'string',
-          initialValue: 'TEXAS',
-          validation: (Rule) => Rule.required()
-        }),
-        defineField({
-          name: 'secondLine',
-          title: 'Second Line (Highlighted)',
-          type: 'string',
-          initialValue: 'FENCING',
-          validation: (Rule) => Rule.required()
-        }),
-        defineField({
-          name: 'thirdLine',
-          title: 'Third Line',
-          type: 'string',
-          initialValue: 'ACADEMY',
-          validation: (Rule) => Rule.required()
-        })
-      ],
-      validation: (Rule) => Rule.required()
+        {name: 'first',  title: 'Line 1',                     type: 'string', validation: R => R.required()},
+        {name: 'second', title: 'Line 2 (highlighted)',        type: 'string', validation: R => R.required()},
+        {name: 'third',  title: 'Line 3',                     type: 'string', validation: R => R.required()}
+      ]
     }),
     defineField({
       name: 'tagline',
       title: 'Tagline',
       type: 'string',
-      initialValue: 'WHERE PRECISION MEETS PASSION',
-      validation: (Rule) => Rule.required().max(100)
+      validation: R => R.max(120)
     }),
     defineField({
       name: 'description',
       title: 'Description',
       type: 'text',
       rows: 3,
-      initialValue: 'Master the art of fencing through disciplined training, expert instruction, and unwavering dedication to excellence in our state-of-the-art facility.',
-      validation: (Rule) => Rule.required().max(500)
+      validation: R => R.max(500)
+    }),
+
+    /* ------  MEDIA  ------ */
+    defineField({
+      name: 'background',
+      title: 'Background Image (desktop)',
+      type: 'image',
+      options: {hotspot: true},
+      validation: R => R.required(),
+      fields: [{name: 'alt', type: 'string', title: 'Alt text', validation: R => R.required()}]
     }),
     defineField({
-      name: 'images',
-      title: 'Images',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'backgroundImage',
-          title: 'Background Image',
-          type: 'image',
-          options: {
-            hotspot: true
-          },
-          fields: [
-            defineField({
-              name: 'alt',
-              type: 'string',
-              title: 'Alt Text',
-              description: 'Important for accessibility and SEO.',
-              validation: (Rule) => Rule.required()
-            })
-          ],
-          validation: (Rule) => Rule.required()
-        })
-      ],
-      validation: (Rule) => Rule.required()
+      name: 'backgroundMobile',
+      title: 'Background Image (mobile, optional)',
+      type: 'image',
+      options: {hotspot: true},
+      fields: [{name: 'alt', type: 'string', title: 'Alt text'}]
     }),
-    defineField({
-      name: 'callToActions',
-      title: 'Call to Action Buttons',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'primaryButton',
-          title: 'Primary Button',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'text',
-              title: 'Button Text',
-              type: 'string',
-              initialValue: 'EXPLORE PROGRAMS',
-              validation: (Rule) => Rule.required().max(50)
-            }),
-            defineField({
-              name: 'url',
-              title: 'Button URL',
-              type: 'url',
-              initialValue: 'https://texasfencingacademy.org/?page_id=881',
-              validation: (Rule) => Rule.required().uri({
-                scheme: ['http', 'https', 'mailto', 'tel']
-              })
-            }),
-            defineField({
-              name: 'openInNewTab',
-              title: 'Open in New Tab',
-              type: 'boolean',
-              initialValue: true
-            })
-          ],
-          validation: (Rule) => Rule.required()
-        }),
-        defineField({
-          name: 'secondaryButton',
-          title: 'Secondary Button',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'text',
-              title: 'Button Text',
-              type: 'string',
-              initialValue: 'BEGIN YOUR JOURNEY',
-              validation: (Rule) => Rule.required().max(50)
-            }),
-            defineField({
-              name: 'scrollTarget',
-              title: 'Scroll Target ID',
-              type: 'string',
-              description: 'Element ID to scroll to (without #)',
-              initialValue: 'registration-section',
-              validation: (Rule) => Rule.required().regex(/^[a-zA-Z][a-zA-Z0-9-_]*$/, {
-                name: 'valid HTML ID',
-                invert: false
-              })
-            })
-          ],
-          validation: (Rule) => Rule.required()
-        })
-      ],
-      validation: (Rule) => Rule.required()
-    })
-  ],
-  preview: {
-    select: {
-      title: 'title.firstLine',
-      subtitle: 'tagline',
-      media: 'images.backgroundImage'
+
+    /* ------  CALL-TO-ACTION  ------ */
+defineField({
+  name: 'primaryCta',
+  title: 'Primary Button',
+  type: 'object',
+  validation: R => R.required(),
+  fields: [
+    { 
+      name: 'text',  
+      type: 'string', 
+      title: 'Label', 
+      validation: R => R.required() 
     },
-    prepare(selection) {
-      const { title, subtitle } = selection;
-      return {
-        title: `Hero: ${title}`,
-        subtitle: subtitle || 'No tagline'
-      };
+    {
+  name: 'url',
+  type: 'string',
+  title: 'URL',
+  validation: R =>
+    R.required()
+      .regex(
+        /^(\/[^\s]*)$|^(https?:\/\/[^\s]+)$|^(#[a-zA-Z0-9\-_]+)$/i,
+        { name: 'url', invert: false }
+      )
+      .error('Enter a valid URL, relative path starting with /, or anchor link starting with #')
+}
+,
+    { 
+      name: 'newTab',
+      type: 'boolean',
+      title: 'Open in new tab', 
+      initialValue: true
     }
+  ]
+}),
+    defineField({
+      name: 'secondaryCta',
+      title: 'Secondary Button',
+      type: 'object',
+      validation: R => R.required(),
+      fields: [
+        {name: 'text',   type: 'string', title: 'Label', validation: R => R.required()},
+        {name: 'action', type: 'string', title: 'Action', description: '“scroll:#id” or URL', validation: R => R.required()}
+      ]
+    }),
+    
+  ],
+
+  preview: {
+    select: {title: 'title.first', media: 'background'},
+    prepare({title, media}) {return {title: `Hero – ${title}`, media}}
   }
-});
+})
